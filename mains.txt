@@ -1,0 +1,92 @@
+import java.util.Scanner;
+public class Main {
+
+    public static boolean check(String s) {
+        for (char c : s.toCharArray()) {
+            if (!Character.isDigit(c) && !Character.isLetter(c) && c != '[' && c != ']') {
+                return false;
+            }
+        }
+        return true;
+    }
+
+    public static boolean check2(String s) {
+        int count = 0;
+        for (char c : s.toCharArray()) {
+            if (Character.isDigit(c)) {
+                count = count * 10 + (c - '0');
+                if (count < 1) {
+                    return false;
+                }
+            } else {
+                count = 0;
+            }
+            if (count > 300) {
+                return false;
+            }
+        }
+        return true;
+    }
+
+    public static String decodeString(String s, int[] index, int stackDepth) {
+        StringBuilder result = new StringBuilder();
+        int count = 0;
+
+        while (index[0] < s.length()) {
+            char c = s.charAt(index[0]);
+
+            if (Character.isDigit(c)) {
+                count = count * 10 + (c - '0');
+            } else if (Character.isLetter(c)) {
+                result.append(c);
+                count = 0;
+            } else if (c == '[') {
+                index[0]++; // Перемещаем индекс на следующий символ
+                stackDepth++; // Увеличиваем счетчик стека перед вызовом рекурсии
+                if (stackDepth > 1000) { // Проверяем, не переполнился ли стек
+                    throw new RuntimeException("Stack overflow detected");
+                }
+                String nested = decodeString(s, index, stackDepth);
+                for (int i = 0; i < count; i++) {
+                    result.append(nested);
+                }
+                count = 0; // Сбрасываем счетчик после обработки вложенной строки
+                continue; // Пропускаем инкремент индекса, так как он уже сделан в рекурсивном вызове
+            } else if (c == ']') {
+                index[0]++; // Перемещаем индекс на следующий символ после закрывающей скобки
+                stackDepth--; // Уменьшаем счетчик стека после возврата из рекурсии
+                return result.toString(); // Возвращаем результат для вышестоящего уровня рекурсии
+            }
+
+            index[0]++; // Перемещаем индекс на следующий символ
+        }
+
+        return result.toString();
+    }
+
+    public static void main(String[] args) {
+        Scanner scanner = new Scanner(System.in);
+        System.out.println("Введите закодированную строку: ");
+        String encodedString = scanner.nextLine();
+
+        if (encodedString.length() > 30) {
+            System.out.println("Слишком длинная строка");
+            return;
+        }
+
+        if (!check(encodedString)) {
+            System.out.println("Недопустимые символы!");
+            return;
+        }
+
+        if (!check2(encodedString)) {
+            System.out.println("Число не входит в нужный диапозон!");
+            return;
+        }
+
+        int[] index = new int[1];
+        int stackDepth = 0;
+        String decodedString = decodeString(encodedString, index, stackDepth);
+        System.out.println("Декодированная строка: " + decodedString);
+    }
+}
