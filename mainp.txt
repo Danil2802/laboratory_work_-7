@@ -1,0 +1,83 @@
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Scanner;
+
+public class Main {
+    public static void main(String[] args) {
+        Scanner scanner = new Scanner(System.in);
+        System.out.print("Введите количество домов (N): ");
+        int N = scanner.nextInt();
+        System.out.print("Введите количество красок для покраски одного дома (A): ");
+        int A = scanner.nextInt();
+        System.out.print("Введите общее количество красок (K): ");
+        int K = scanner.nextInt();
+
+        if (K < A) {
+            System.out.println("Недостаточно красок для покраски одного дома.");
+            return;
+        }
+
+        if (N < 1 || K < 0 || A < 1) {
+            System.out.println("Не балуетесь!");
+            return;
+        }
+
+        List<List<Integer>> houses = new ArrayList<>();
+        for (int i = 0; i < N; i++) {
+            houses.add(new ArrayList<>());
+        }
+        List<Integer> usedColors = new ArrayList<>();
+
+        if (paintHouses(houses, N, K, A, 0, usedColors, 0, 1000)) {
+            System.out.println("Да, можно покрасить дома следующим образом:");
+            for (List<Integer> house : houses) {
+                for (int color : house) {
+                    System.out.print(color + " ");
+                }
+                System.out.println();
+            }
+        } else {
+            System.out.println("Нет, невозможно покрасить дома с такими условиями.");
+        }
+    }
+
+    private static boolean canUseColor(List<Integer> usedColors, int color) {
+        for (int usedColor : usedColors) {
+            if (color == usedColor) {
+                return false;
+            }
+        }
+        return true;
+    }
+
+    private static int getNextColor(int currentColor, int K) {
+        return (currentColor % K) + 1;
+    }
+
+    private static boolean paintHouses(List<List<Integer>> houses, int N, int K, int A, int houseIndex, List<Integer> usedColors, int depth, int maxDepth) {
+        if (depth > maxDepth) {
+            return false;
+        }
+
+        if (houseIndex == N) {
+            return true;
+        }
+
+        int currentColor = houseIndex > 0 ? houses.get(houseIndex - 1).get(A - 1) : 0;
+        for (int i = 0; i < A; i++) {
+            currentColor = getNextColor(currentColor, K);
+            if (canUseColor(usedColors, currentColor)) {
+                houses.get(houseIndex).add(currentColor);
+            } else {
+                return false;
+            }
+        }
+
+        if (houseIndex >= 2) {
+            usedColors.remove(0);
+        }
+        usedColors.add(houses.get(houseIndex).get(0));
+
+        return paintHouses(houses, N, K, A, houseIndex + 1, usedColors, depth + 1, maxDepth);
+  }
+}
